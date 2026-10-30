@@ -4,7 +4,7 @@ A simple and intuitive task management application built with React and Vite. It
 
 ## Live Preview
 
-[View the live application](<>)
+[View the live application](https://vasiiix.github.io/todo_app/)
 
 ## Technologies Used
 
@@ -20,7 +20,7 @@ A simple and intuitive task management application built with React and Vite. It
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/todo-app.git
+git clone https://github.com/vasiIix/todo_app.git
 cd todo-app
 ```
 
@@ -33,7 +33,7 @@ npm install
 ### 3. Run the development server
 
 ```bash
-npm run dev
+npm start
 ```
 
 ## Features
