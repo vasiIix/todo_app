@@ -1,44 +1,25 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Todo } from '../../types/Todo';
 import cn from 'classnames';
+import { TodosContext } from '../../Context/Todo/TodosContext';
 
 type Props = {
   todo: Todo;
-  saveTodo: (id: number, changes: Partial<Omit<Todo, 'id'>>) => Promise<void>;
-  onDeleteTodo: (id: number) => Promise<void>;
 };
 
-export const TodoRow: React.FC<Props> = ({ todo, saveTodo, onDeleteTodo }) => {
+export const TodoRow: React.FC<Props> = ({ todo }) => {
   const { id, title, completed } = todo;
+  const context = useContext(TodosContext);
 
-  const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  if (!context) {
+    throw new Error('TodoList must be used within TodoProvider');
+  }
+
+  const { animatedTodos, onUpdataTodo, onDeleteTodo } = context;
+
   const [isEdit, setIsEdit] = useState<boolean>(false);
 
   const refEditQuery = useRef<HTMLInputElement>(null);
-
-  const editTodo = async (
-    changes: Partial<Omit<Todo, 'id'>>,
-    onSuccess?: () => void,
-  ) => {
-    setIsAnimating(true);
-    try {
-      await saveTodo(id, changes);
-      onSuccess?.();
-    } catch (error) {
-    } finally {
-      setIsAnimating(false);
-    }
-  };
-
-  const deleteTodo = async () => {
-    setIsAnimating(true);
-    try {
-      await onDeleteTodo(id);
-    } catch (error) {
-    } finally {
-      setIsAnimating(false);
-    }
-  };
 
   const handleEditClick = () => setIsEdit(true);
 
@@ -56,26 +37,25 @@ export const TodoRow: React.FC<Props> = ({ todo, saveTodo, onDeleteTodo }) => {
     }
 
     if (newTitle === '') {
-      deleteTodo();
+      onDeleteTodo(id);
 
       return;
     }
 
-    editTodo({ title: newTitle }, () => setIsEdit(false));
+    onUpdataTodo(id, { title: newTitle }, () => setIsEdit(false));
   };
 
-  const handleToggleComplete = () => editTodo({ completed: !completed });
+  const handleToggleComplete = () =>
+    onUpdataTodo(id, { completed: !completed });
 
   const handleEditCancel = () => setIsEdit(false);
-
-  const handleDeleteClick = () => deleteTodo();
 
   useEffect(() => {
     if (refEditQuery.current) {
       refEditQuery.current.value = title;
       refEditQuery.current.focus();
     }
-  }, [isEdit]);
+  }, [isEdit, title]);
 
   return (
     <div
@@ -127,7 +107,7 @@ export const TodoRow: React.FC<Props> = ({ todo, saveTodo, onDeleteTodo }) => {
             type="button"
             className="todo__remove"
             data-cy="TodoDelete"
-            onClick={() => handleDeleteClick()}
+            onClick={() => onDeleteTodo(id)}
           >
             ×
           </button>
@@ -138,7 +118,7 @@ export const TodoRow: React.FC<Props> = ({ todo, saveTodo, onDeleteTodo }) => {
       <div
         data-cy="TodoLoader"
         className={cn('modal', 'overlay', {
-          'is-active': isAnimating,
+          'is-active': animatedTodos.includes(id),
         })}
       >
         <div className="modal-background has-background-white-ter" />

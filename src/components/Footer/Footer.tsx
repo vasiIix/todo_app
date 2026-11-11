@@ -1,27 +1,39 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import cn from 'classnames';
 import { TodoFilterStatus } from '../../types/TodoFilterStatus';
+import { TodosContext } from '../../Context/Todo/TodosContext';
 
 type Props = {
-  totalTodos: number;
-  completedTodos: number;
   selectedFilter: TodoFilterStatus;
-  deleteCompletedTodos: () => void;
   setTodoFilter: (value: TodoFilterStatus) => void;
 };
 
-export const Footer: React.FC<Props> = ({
-  totalTodos,
-  completedTodos,
-  selectedFilter,
-  deleteCompletedTodos,
-  setTodoFilter,
-}) => {
+export const Footer: React.FC<Props> = ({ selectedFilter, setTodoFilter }) => {
+  const context = useContext(TodosContext);
+
+  if (!context) {
+    throw new Error('TodoList must be used within TodoProvider');
+  }
+
+  const { todos, onDeleteTodo } = context;
+
+  function getCompletedTodosCount() {
+    return todos.reduce((prev, todo) => (todo.completed ? prev + 1 : prev), 0);
+  }
+
+  function handleDeleteCompletedTodos() {
+    todos.forEach(todo => {
+      if (todo.completed) {
+        onDeleteTodo(todo.id);
+      }
+    });
+  }
+
   return (
-    totalTodos > 0 && (
+    todos.length > 0 && (
       <footer className="todoapp__footer" data-cy="Footer">
         <span className="todo-count" data-cy="TodosCounter">
-          {totalTodos - completedTodos} items left
+          {todos.length - getCompletedTodosCount()} items left
         </span>
 
         {/* Active link should have the 'selected' class */}
@@ -65,8 +77,8 @@ export const Footer: React.FC<Props> = ({
           type="button"
           className="todoapp__clear-completed"
           data-cy="ClearCompletedButton"
-          onClick={deleteCompletedTodos}
-          disabled={completedTodos === 0}
+          onClick={handleDeleteCompletedTodos}
+          disabled={getCompletedTodosCount() === 0}
         >
           Clear completed
         </button>

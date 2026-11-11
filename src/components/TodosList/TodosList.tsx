@@ -1,31 +1,22 @@
-import { Todo } from '../../types/Todo';
 import { TodoRow } from '../TodoRow';
 import { TodoLoadindRow } from '../TodoLoadindRow';
+import { useContext } from 'react';
+import { TodosContext } from '../../Context/Todo/TodosContext';
+import { Todo } from '../../types/Todo';
 
-type Props = {
-  todos: Todo[];
-  todoToCreate: Todo | null;
-  onsaveTodo: (id: number, changes: Partial<Omit<Todo, 'id'>>) => Promise<void>;
-  onDeleteTodo: (id: number) => Promise<void>;
-};
+export const TodosList: React.FC<{ todos: Todo[] }> = ({ todos }) => {
+  const context = useContext(TodosContext);
 
-export const TodosList: React.FC<Props> = ({
-  todos,
-  todoToCreate,
-  onsaveTodo,
-  onDeleteTodo,
-}) => {
+  if (!context) {
+    throw new Error('TodoList must be used within TodoProvider');
+  }
+
+  const { todoToCreate } = context;
+
   return (
     <section className="todoapp__main" data-cy="TodoList">
       {todos.map(todo => {
-        return (
-          <TodoRow
-            key={todo.id}
-            todo={todo}
-            saveTodo={onsaveTodo}
-            onDeleteTodo={onDeleteTodo}
-          />
-        );
+        return <TodoRow key={todo.id} todo={todo} />;
       })}
 
       {/* This todo is in loadind state */}
